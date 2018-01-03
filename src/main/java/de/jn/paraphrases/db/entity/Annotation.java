@@ -16,13 +16,12 @@ public class Annotation {
 	String annotationIdentifier;
 	
 	String url;
-	String fragmentIdentifier;
 	
 	@Lob
 	String plagiatSent;
 	
 	@Lob
-	String srcSent;
+	String sourceSent;
 	
    @Override
     public String toString() {

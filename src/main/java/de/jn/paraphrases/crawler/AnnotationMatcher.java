@@ -7,9 +7,11 @@ import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import javax.annotation.PostConstruct;
@@ -27,9 +29,9 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import de.jn.paraphrases.db.entity.Annotation;
-import de.jn.paraphrases.db.entity.Plagiat;
+import de.jn.paraphrases.db.entity.Fragment;
 import de.jn.paraphrases.db.repository.AnnotationRepository;
-import de.jn.paraphrases.db.repository.PlagiatRepository;
+import de.jn.paraphrases.db.repository.FragmentRepository;
 import opennlp.tools.sentdetect.SentenceDetectorME;
 import opennlp.tools.sentdetect.SentenceModel;
 import opennlp.tools.util.Span;
@@ -44,12 +46,13 @@ public class AnnotationMatcher {
 	AnnotationRepository annotationRepository;
 
 	@Autowired
-	PlagiatRepository plagiatRepository;
+	FragmentRepository fragmentRepository;
 
 	@Value("${openNLP.sent.path}")
 	String sentenceDetectorPath;
 
 	SentenceDetectorME sentenceDetector;
+	Set<String> addedPairs = new HashSet<String>();
 	
 	 @Transactional
 	 public void save(Annotation a){
@@ -60,12 +63,12 @@ public class AnnotationMatcher {
 	public void match() throws FileNotFoundException, IOException {
 		sentenceDetector = new SentenceDetectorME(new SentenceModel(new FileInputStream(sentenceDetectorPath)));
 		
-		Iterator<Plagiat> itr = plagiatRepository.findAll().iterator();
+		Iterator<Fragment> itr = fragmentRepository.findAll().iterator();
 		while (itr.hasNext()) {
-			Plagiat plagiat = itr.next();
+			Fragment plagiat = itr.next();
 
-//			if(!(plagiat.getUrl().equals("http://de.vroniplag.wikia.com/wiki/Aak/Fragment_039_11")))
-//				continue;
+			if(!(plagiat.getUrl().equals("http://de.vroniplag.wikia.com/wiki/Jkr/Fragment_208_16")))
+				continue;
 			
 			List<String> plagiatElements = null;
 			List<String> srcElements = null;
@@ -104,16 +107,27 @@ public class AnnotationMatcher {
 	
 	
 	private void setupAndSaveAnnotationItem(List<String> srcElements, List<String> plagiatElements,
-											Plagiat plagiat){
+											Fragment fragment){
+		
 		for (int i = 0; i < srcElements.size(); i++) {
+			
 			if(plagiatElements.get(i).equals(srcElements.get(i))) continue;
+
 			Annotation annotation = new Annotation();
-			annotation.setFragmentIdentifier(plagiat.getFragmentIdentifier());
-			annotation.setUrl(plagiat.getUrl());
-			annotation.setPlagiatSent(plagiatElements.get(i));
-			annotation.setSrcSent(srcElements.get(i));
-			annotation.setAnnotationIdentifier(plagiat.getFragmentIdentifier() + "_" + Integer.toString(i));
-			save(annotation);
+			annotation.setUrl(fragment.getUrl());
+			
+			String plagSent = plagiatElements.get(i);
+			String srcSent = srcElements.get(i);
+			System.out.println("plagiat: " + plagSent);
+			System.out.println("src: " + srcSent);
+			System.out.println();
+			
+			if(addedPairs.add(plagSent + " " + srcSent)){ 
+				annotation.setPlagiatSent(plagSent);
+				annotation.setSourceSent(srcSent);
+				annotation.setAnnotationIdentifier(fragment.getFragmentIdentifier() + "_" + Integer.toString(i));
+//				save(annotation);
+			}
 		}
 	}
 	private List<String> mapAnnotationsToSentences(List<String> textSpans,

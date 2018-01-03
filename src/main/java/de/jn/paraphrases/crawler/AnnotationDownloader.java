@@ -16,8 +16,8 @@ import com.gargoylesoftware.htmlunit.WebClient;
 import com.gargoylesoftware.htmlunit.html.DomElement;
 import com.gargoylesoftware.htmlunit.html.HtmlPage;
 
-import de.jn.paraphrases.db.entity.Plagiat;
-import de.jn.paraphrases.db.repository.PlagiatRepository;
+import de.jn.paraphrases.db.entity.Fragment;
+import de.jn.paraphrases.db.repository.FragmentRepository;
 
 @Component
 @Profile("annotation-downloader")
@@ -26,20 +26,20 @@ public class AnnotationDownloader {
 	Logger logger = LoggerFactory.getLogger(this.getClass());
 
 	@Autowired
-	PlagiatRepository plagiatRepository;
+	FragmentRepository plagiatRepository;
 	
 	@Transactional
-	public void save(Plagiat p){
+	public void save(Fragment p){
 		plagiatRepository.save(p);
 	}
 
 	@PostConstruct
 	public void onload(){
 		
-		Iterator<Plagiat> itr = plagiatRepository.findAll().iterator();
+		Iterator<Fragment> itr = plagiatRepository.findAll().iterator();
 		int i=1;
 		while(itr.hasNext()){
-				Plagiat plagiat = null;
+				Fragment plagiat = null;
 			try{
 				plagiat = itr.next();
 				WebClient webClient = new WebClient();

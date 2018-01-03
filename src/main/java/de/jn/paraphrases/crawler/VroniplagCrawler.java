@@ -1,7 +1,7 @@
 package de.jn.paraphrases.crawler;
 
-import de.jn.paraphrases.db.entity.Plagiat;
-import de.jn.paraphrases.db.repository.PlagiatRepository;
+import de.jn.paraphrases.db.entity.Fragment;
+import de.jn.paraphrases.db.repository.FragmentRepository;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -29,7 +29,7 @@ public class VroniplagCrawler {
     Logger logger = LoggerFactory.getLogger(this.getClass());
 
     @Autowired
-    PlagiatRepository pageRepository;
+    FragmentRepository pageRepository;
 
     Pattern fragmentMatcher = Pattern.compile(".*/wiki/.*/Fragment.*");
 
@@ -89,7 +89,7 @@ public class VroniplagCrawler {
         try {
             Document doc = Jsoup.connect(url).get();
 
-            Plagiat plagiat = new Plagiat();
+            Fragment plagiat = new Fragment();
 
             plagiat.setUrl(url);
 
@@ -122,7 +122,7 @@ public class VroniplagCrawler {
             String plagiatTextRaw = fragmentTr.select("td").first().toString();
             plagiat.setRawPlagiatText(plagiatTextRaw);
 
-            plagiat.setSource(Plagiat.Source.Vroniplag.name());
+            plagiat.setSource(Fragment.Source.Vroniplag.name());
             pageRepository.save(plagiat);
         } catch (IOException | NullPointerException e) {
             logger.error("exception fetching " + url, e);

@@ -14,7 +14,7 @@ import javax.persistence.*;
 @Getter
 @Setter
 @ToString
-public class Plagiat {
+public class Fragment {
 
     @Id
     String url;
