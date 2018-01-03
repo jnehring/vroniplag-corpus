@@ -47,6 +47,9 @@ public class AnnotationMatcher {
 
 	@Autowired
 	FragmentRepository fragmentRepository;
+	
+	@Autowired
+	ParaphrasePostProcessor postProcessor;
 
 	@Value("${openNLP.sent.path}")
 	String sentenceDetectorPath;
@@ -67,7 +70,7 @@ public class AnnotationMatcher {
 		while (itr.hasNext()) {
 			Fragment plagiat = itr.next();
 
-			if(!(plagiat.getUrl().equals("http://de.vroniplag.wikia.com/wiki/Jkr/Fragment_208_16")))
+			if(!(plagiat.getUrl().equals("http://de.vroniplag.wikia.com/wiki/Aaf/Fragment_008_01")))
 				continue;
 			
 			List<String> plagiatElements = null;
@@ -101,13 +104,15 @@ public class AnnotationMatcher {
 				logger.error(iox.getMessage());
 				throw iox;
 			}
-			setupAndSaveAnnotationItem(srcElements, plagiatElements, plagiat);
-		}
+			List<Integer> bowDiffs = postProcessor.computeBagOfWordsDifference(plagiatElements, srcElements);
+			List<Float> wordRatios = postProcessor.computeWordRatio(plagiatElements, srcElements);
+			setupAndSaveAnnotationItem(srcElements, plagiatElements, plagiat, bowDiffs, wordRatios);
+		} 
 	}
 	
 	
 	private void setupAndSaveAnnotationItem(List<String> srcElements, List<String> plagiatElements,
-											Fragment fragment){
+											Fragment fragment, List<Integer> bowDiffs, List<Float> wordRatios){
 		
 		for (int i = 0; i < srcElements.size(); i++) {
 			
@@ -118,15 +123,17 @@ public class AnnotationMatcher {
 			
 			String plagSent = plagiatElements.get(i);
 			String srcSent = srcElements.get(i);
-			System.out.println("plagiat: " + plagSent);
-			System.out.println("src: " + srcSent);
-			System.out.println();
+//			System.out.println("plagiat: " + plagSent);
+//			System.out.println("src: " + srcSent);
+//			System.out.println();
 			
 			if(addedPairs.add(plagSent + " " + srcSent)){ 
 				annotation.setPlagiatSent(plagSent);
 				annotation.setSourceSent(srcSent);
+				annotation.setNbWordsRatio(wordRatios.get(i));
+				annotation.setBowDiff(bowDiffs.get(i));
 				annotation.setAnnotationIdentifier(fragment.getFragmentIdentifier() + "_" + Integer.toString(i));
-//				save(annotation);
+				save(annotation);
 			}
 		}
 	}

@@ -23,6 +23,9 @@ public class Annotation {
 	@Lob
 	String sourceSent;
 	
+	Float nbWordsRatio;
+	Integer bowDiff;
+	
    @Override
     public String toString() {
         return super.toString();
