@@ -26,22 +26,26 @@ public class AnnotationDownloader {
 	Logger logger = LoggerFactory.getLogger(this.getClass());
 
 	@Autowired
-	FragmentRepository plagiatRepository;
+	FragmentRepository fragmentRepository;
 	
 	@Transactional
 	public void save(Fragment p){
-		plagiatRepository.save(p);
+//		System.out.println("source: " + p.getRawSourceText());
+//		System.out.println("plagiat: " + p.getRawPlagiatText());
+		fragmentRepository.save(p);
 	}
 
 	@PostConstruct
 	public void onload(){
 		
-		Iterator<Fragment> itr = plagiatRepository.findAll().iterator();
+		Iterator<Fragment> itr = fragmentRepository.findAll().iterator();
 		int i=1;
 		while(itr.hasNext()){
 				Fragment plagiat = null;
 			try{
 				plagiat = itr.next();
+//				if(!(plagiat.getUrl().equals("http://de.vroniplag.wikia.com/wiki/Aaf/Fragment_009_01")))
+//					continue;
 				WebClient webClient = new WebClient();
 				
 				HtmlPage page = webClient.getPage(plagiat.getUrl());
@@ -54,7 +58,7 @@ public class AnnotationDownloader {
 		        String plagRaw = plagiatTr.asXml();
 		        
 		        plagiat.setRawPlagiatText(plagRaw);
-		        plagiat.setRawSourceText(srcRaw);							
+		        plagiat.setRawSourceText(srcRaw);	
 				save(plagiat);
 				
 				webClient.close();
@@ -63,7 +67,7 @@ public class AnnotationDownloader {
 				plagiat.setRawPlagiatText("");
 				plagiat.setRawSourceText("");
 				save(plagiat);
-			}
+			} 
 		}
 	}
 

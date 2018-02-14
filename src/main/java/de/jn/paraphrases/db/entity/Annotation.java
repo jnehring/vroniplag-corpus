@@ -23,6 +23,9 @@ public class Annotation {
 	@Lob
 	String sourceSent;
 	
+	@Lob
+	String fakeSourceSent;
+	
 	Float nbWordsRatio;
 	Integer bowDiff;
 	
