@@ -1,7 +1,13 @@
 package de.jn.paraphrases.crawler;
 
-import de.jn.paraphrases.db.entity.Fragment;
-import de.jn.paraphrases.db.repository.FragmentRepository;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.regex.Pattern;
+
+import javax.annotation.PostConstruct;
+
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -12,12 +18,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
-import javax.annotation.PostConstruct;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.regex.Pattern;
+import de.jn.paraphrases.db.entity.Fragment;
+import de.jn.paraphrases.db.repository.FragmentRepository;
 
 /**
  * Created by jan on 29.08.17.
@@ -34,12 +36,12 @@ public class VroniplagCrawler {
     Pattern fragmentMatcher = Pattern.compile(".*/wiki/.*/Fragment.*");
 
     String[] seeds = {
-            "http://de.vroniplag.wikia.com/wiki/Kategorie:BauernOpfer",
-            "http://de.vroniplag.wikia.com/wiki/Kategorie:KomplettPlagiat",
-            "http://de.vroniplag.wikia.com/wiki/Kategorie:ShakeAndPaste",
+//            "http://de.vroniplag.wikia.com/wiki/Kategorie:BauernOpfer",
+//            "http://de.vroniplag.wikia.com/wiki/Kategorie:KomplettPlagiat",
+//            "http://de.vroniplag.wikia.com/wiki/Kategorie:ShakeAndPaste",
             "http://de.vroniplag.wikia.com/wiki/Kategorie:Verschleierung",
-            "http://de.vroniplag.wikia.com/wiki/Kategorie:Versch%C3%A4rftesBauernopfer",
-            "http://de.vroniplag.wikia.com/wiki/Kategorie:%C3%9CbersetzungsPlagiat"
+//            "http://de.vroniplag.wikia.com/wiki/Kategorie:Versch%C3%A4rftesBauernopfer",
+//            "http://de.vroniplag.wikia.com/wiki/Kategorie:%C3%9CbersetzungsPlagiat"
     };
 
     @PostConstruct
@@ -85,7 +87,7 @@ public class VroniplagCrawler {
         }
 
         logger.info("download page " + url);
-
+        
         try {
             Document doc = Jsoup.connect(url).get();
 
