@@ -58,6 +58,12 @@ public class AnnotationMatcher {
 	@Value("${openNLP.sent.path}")
 	String sentenceDetectorPath;
 
+	@Value("${words.min}")
+	int wordsMin;
+	
+	@Value("${words.max}")
+	int wordsMax;
+	
 	SentenceDetectorME sentenceDetector;
 	Set<String> addedPairs = new HashSet<String>();
 	
@@ -85,8 +91,8 @@ public class AnnotationMatcher {
 		while (itr.hasNext()) {
 			Fragment plagiat = itr.next();
 
-			if(!(plagiat.getUrl().equals("http://de.vroniplag.wikia.com/wiki/Aaf/Fragment_009_01")))
-				continue;
+//			if(!(plagiat.getUrl().equals("http://de.vroniplag.wikia.com/wiki/Aaf/Fragment_009_01")))
+//				continue;
 			List<String> plagiatElements = null;
 			List<String> srcElements = null;
 			List<String> allSrcSents = new ArrayList<String>();
@@ -126,7 +132,7 @@ public class AnnotationMatcher {
 				logger.error(iox.getMessage());
 				throw iox;
 			}
-//			setupAndSaveAnnotationItem(srcElements, plagiatElements, plagiat, allSrcSents);
+			setupAndSaveAnnotationItem(srcElements, plagiatElements, plagiat, allSrcSents);
 		} 
 	}
 	
@@ -173,6 +179,12 @@ public class AnnotationMatcher {
 			String plagSent = plagiatElements.get(i);
 			String srcSent = srcElements.get(i);
 
+			// only consider pairs where #words lies in between certain range for both
+			int nbWordsPlag = postProcessor.tokenizeSentences(plagSent).size();
+			if(nbWordsPlag<wordsMin || nbWordsPlag>wordsMax) continue;
+			int nbWordsSrc = postProcessor.tokenizeSentences(srcSent).size();
+			if(nbWordsSrc<wordsMin || nbWordsSrc>wordsMax) continue;
+			
 			List<String> annotationPair = filterOutIdenticalSents(plagSent, srcSent);
 			if(!annotationPair.isEmpty()){
 				plagSent = annotationPair.get(0);
