@@ -39,7 +39,6 @@ public class AnnotationDownloader {
 	public void onload(){
 		
 		Iterator<Fragment> itr = fragmentRepository.findAll().iterator();
-		int i=1;
 		while(itr.hasNext()){
 				Fragment plagiat = null;
 			try{
@@ -57,8 +56,8 @@ public class AnnotationDownloader {
 		        String srcRaw = srcTr.asXml();
 		        String plagRaw = plagiatTr.asXml();
 		        
-		        plagiat.setRawPlagiatText(plagRaw);
-		        plagiat.setRawSourceText(srcRaw);	
+		        plagiat.setRawPlagiatText(VroniplagCrawler.removeInvalidUTF8(plagRaw));
+		        plagiat.setRawSourceText(VroniplagCrawler.removeInvalidUTF8(srcRaw));	
 				save(plagiat);
 				
 				webClient.close();

@@ -20,20 +20,17 @@ public class Fragment {
     String url;
 
     @Lob
-    String fullHtml;
-
-    @Lob
-    String sourceText;
-
-    @Lob
     String rawSourceText;
-
-    @Lob
-    String plagiatText;
 
     @Lob
     String rawPlagiatText;
 
+    @Lob
+    String sourceText;
+    
+    @Lob
+    String plagiatText;
+    
     String source;
 
     String type;
@@ -41,8 +38,6 @@ public class Fragment {
     boolean gesichtet;
 
     String fragmentIdentifier;
-
-    String sichtunsergebnis;
 
     public enum Type{
         BauernOpfer‎,

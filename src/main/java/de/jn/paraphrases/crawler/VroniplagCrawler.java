@@ -1,6 +1,8 @@
 package de.jn.paraphrases.crawler;
 
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -29,7 +31,8 @@ import de.jn.paraphrases.db.repository.FragmentRepository;
 public class VroniplagCrawler {
 
     Logger logger = LoggerFactory.getLogger(this.getClass());
-
+    Charset charset = Charset.forName("UTF-8");
+    
     @Autowired
     FragmentRepository pageRepository;
 
@@ -85,7 +88,9 @@ public class VroniplagCrawler {
             logger.info("skip page " + url);
             return;
         }
-
+//        if(!url.equals("http://de.vroniplag.wikia.com/wiki/Msf/Fragment_042_10") && !url.equals("http://de.vroniplag.wikia.com/wiki/Acb/Fragment_017_07"))
+//        	return;
+        	
         logger.info("download page " + url);
         
         try {
@@ -105,33 +110,37 @@ public class VroniplagCrawler {
             boolean gesichtet = gesichtetStr.equals("Yes");
             plagiat.setGesichtet(gesichtet);
 
-            String fullHtml = doc.select("#WikiaMainContent").first().toString();
-            plagiat.setFullHtml(fullHtml);
-
             Element fragmentTr = doc.select("div.fragment table").get(1).select("tr").last();
-
+            
             Element sourceElement= fragmentTr.select("td").last();
             String sourceText = trimAfterHr(sourceElement.toString());
             plagiat.setSourceText(sourceText);
-
-            String sourceTextRaw = fragmentTr.select("td").last().toString();
-            plagiat.setRawSourceText(sourceTextRaw);
-
+            
             Element plagiatElement = fragmentTr.select("td").first();
             String plagiatText = trimAfterHr(plagiatElement.toString());
             plagiat.setPlagiatText(plagiatText);
+            
+            String sourceTextRaw = fragmentTr.select("td").last().toString();
+            plagiat.setRawSourceText(removeInvalidUTF8(sourceTextRaw));
 
             String plagiatTextRaw = fragmentTr.select("td").first().toString();
-            plagiat.setRawPlagiatText(plagiatTextRaw);
+            plagiat.setRawPlagiatText(removeInvalidUTF8(plagiatTextRaw));
 
             plagiat.setSource(Fragment.Source.Vroniplag.name());
             pageRepository.save(plagiat);
-        } catch (IOException | NullPointerException e) {
+        } catch (Exception e) {
             logger.error("exception fetching " + url, e);
         }
 
     }
 
+    public static String removeInvalidUTF8(String text) throws UnsupportedEncodingException{
+        text = text.replaceAll("\\p{C}", " ");
+        byte[] bytes = text.getBytes("UTF-8");
+        text = new String(bytes, "UTF-8");
+        return text;
+    }
+    
     public String trimAfterHr(String html){
         String cleaned = null;
         int index = html.toLowerCase().indexOf("<hr>");

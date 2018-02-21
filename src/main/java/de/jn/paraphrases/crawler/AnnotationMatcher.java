@@ -91,7 +91,7 @@ public class AnnotationMatcher {
 		while (itr.hasNext()) {
 			Fragment plagiat = itr.next();
 
-//			if(!(plagiat.getUrl().equals("http://de.vroniplag.wikia.com/wiki/Aaf/Fragment_009_01")))
+//			if(!(plagiat.getUrl().equals("http://de.vroniplag.wikia.com/wiki/Msf/Fragment_042_10")))
 //				continue;
 			List<String> plagiatElements = null;
 			List<String> srcElements = null;
@@ -100,7 +100,7 @@ public class AnnotationMatcher {
 			try {
 				List<List<String>> plagiatSpans = new ArrayList<List<String>>();
 				List<List<String>> srcSpans = new ArrayList<List<String>>();
-				System.out.println(plagiat.getUrl());
+				System.out.print(plagiat.getUrl() + " ");
 				
 				List<Map<String, Map.Entry<Integer, Integer>>> plagiatAnnotations = 
 						mapAnnotationsToOffsets(plagiat.getRawPlagiatText(), plagiatSpans);
@@ -111,7 +111,11 @@ public class AnnotationMatcher {
 				if(srcAnnotations==null) continue;
 
 				Collection<String> commonAnnotationKeys = getAnnotationsIntersection(plagiatAnnotations, srcAnnotations);
-			
+
+				List<Integer> nbAnnotations = new ArrayList<Integer>();
+				srcAnnotations.forEach(annot -> nbAnnotations.add(annot.size()));
+				int totalAnnotations = nbAnnotations.stream().mapToInt(Integer::intValue).sum();
+				System.out.println("common annotations: " + commonAnnotationKeys.size() + "/" + totalAnnotations);
 				List<String> plagiatText = joinParagraphsToText(plagiatSpans);
 				List<String> srcText = joinParagraphsToText(srcSpans);
 
