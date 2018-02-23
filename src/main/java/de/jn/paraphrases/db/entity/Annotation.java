@@ -25,9 +25,16 @@ public class Annotation {
 	
 	@Lob
 	String fakeSourceSent;
+
+	String lang_source;
+	String lang_plagiat;
+
+	String type;
 	
 	Float nbWordsRatio;
 	Integer bowDiff;
+	
+
 	
    @Override
     public String toString() {

@@ -38,6 +38,9 @@ public class Fragment {
     boolean gesichtet;
 
     String fragmentIdentifier;
+    
+    String lang_source;
+    String lang_plagiat;
 
     public enum Type{
         BauernOpfer‎,

@@ -202,6 +202,9 @@ public class AnnotationMatcher {
 			
 			Annotation annotation = new Annotation();
 			annotation.setUrl(fragment.getUrl());
+			annotation.setLang_source(fragment.getLang_source());
+			annotation.setLang_plagiat(fragment.getLang_plagiat());
+			annotation.setType(fragment.getType());
 			
 //			System.out.println("plagiat: " + plagSent);
 //			System.out.println("src: " + srcSent);
