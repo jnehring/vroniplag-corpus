@@ -5,16 +5,15 @@ final dataset ([Click here to download the data directly](add)):
 
 
 ### STEP 1 - CRAWL THE DATA
-    1. Run VroniplagCrawler to get initial fragment table
-    		
-    		```
-		--spring.profiles.active=vroniplag
-		```
+Run VroniplagCrawler to get initial fragment table
+```
+--spring.profiles.active=vroniplag
+```
 	
-    2. Run AnnotationDownloader to get the annotations which are added after javascript was run on the website
-    		```
-		--spring.profiles.active=annotation-downloader
-		```
+Run AnnotationDownloader to get the annotations which are added after javascript was run on the website
+```
+--spring.profiles.active=annotation-downloader
+```
 
 ### STEP 2: Language Detection
 In this step the fields *lang_source* and *lang_plagiat* of the table *fragment* are filled.
