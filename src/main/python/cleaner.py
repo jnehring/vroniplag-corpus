@@ -9,7 +9,7 @@ import sys
 # USES PYTHON 2!!
 
 
-def addNegatives(tablename, fakeSrcDict):
+def addNegatives(conn, tablename, fakeSrcDict):
     err_count = 0
     nb_negatives = 0
     cur = executeSql("SELECT * from " + tablename + " WHERE isParaphrase=1;")
@@ -41,7 +41,7 @@ def addNegatives(tablename, fakeSrcDict):
         query += u";"
         query = query.encode('utf8')
         try:
-            cur2 = CONN.cursor()
+            cur2 = conn.cursor()
             cur2.execute(query)
             cur2.close()
             nb_negatives += 1
@@ -54,7 +54,7 @@ def addNegatives(tablename, fakeSrcDict):
     print("#nb fake pairs: {}".format(nb_negatives))
     print("")
 
-    CONN.commit()
+    conn.commit()
 
 
 def addValToQuery(vals, query):
@@ -71,25 +71,27 @@ def addValToQuery(vals, query):
     return query
 
 
-def createMonolingualLangTable(table, lang, word_ratio_min, word_ratio_max, bow_diff_min):
+def createMonolingualLangTable(conn, table, lang, word_ratio_min, word_ratio_max, bow_diff_min):
     query = getQueryMonolingualLangTable(table, lang, wr_min=word_ratio_min, wr_max=word_ratio_max, bd_min=bow_diff_min)
     cur = executeSql(query)
-    CONN.commit()
+    conn.commit()
     cur.close()
 
     query = "ALTER TABLE " + table + " ADD COLUMN isParaphrase TINYINT(1) DEFAULT 1"
     cur = executeSql(query)
-    CONN.commit()
+    conn.commit()
     cur.close()
 
     ids_to_fake_sources = getFakeSources(lang)
-    addNegatives(table, ids_to_fake_sources)
+    addNegatives(conn, table, ids_to_fake_sources)
 
 
-def detectLang():
+def detectLang(conn):
     # language detection
+
     #conn = MySQLdb.connect(host='127.0.0.1', user='root', passwd="", db='vroniplag', charset='utf8')
     cur = CONN.cursor(MySQLdb.cursors.DictCursor)
+
     cur.execute("SELECT * FROM fragment ORDER BY fragment_identifier")
 
     for idx, r in enumerate(cur):
@@ -103,7 +105,7 @@ def detectLang():
 
             query = "UPDATE fragment SET lang_source='" + lang_original + "', lang_plagiat='" + lang_plagiat
             query += "' WHERE url='" + url + "';"
-            cur2 = CONN.cursor()
+            cur2 = conn.cursor()
             cur2.execute(query)
             cur2.close()
 
@@ -113,13 +115,13 @@ def detectLang():
             sys.stderr.write("Exception:" + url)
             print(e)
 
-    CONN.commit()
+    conn.commit()
     cur.close()
-    CONN.close()
+    conn.close()
 
 
-def executeSql(query):
-    cur = CONN.cursor(MySQLdb.cursors.DictCursor)
+def executeSql(conn, query):
+    cur = conn.cursor(MySQLdb.cursors.DictCursor)
     cur.execute(query)
     return cur
 
@@ -215,16 +217,15 @@ if __name__ == '__main__':
     # (for future: integrate STEP 0+1)
 
     # STEP 2: Language Detection (fills lang_source + lang_plagiat columns of fragment table)
-    CONN = MySQLdb.connect(host='127.0.0.1', user='root', passwd="", db='vroniplag', charset='utf8')
-
-    detectLang()
+    conn = MySQLdb.connect(host='127.0.0.1', user='root', passwd="", db='vroniplag', charset='utf8')
+    #detectLang(conn)
 
     # STEP 3: Run Java AnnotationMatcher to get annotation table
-    try:
-        cur = executeSql("SELECT * from annotation")
-    except:
-        sys.stderr.write("Run Java AnnotationMatcher first")
-        sys.exit()
+#     try:
+#         cur = executeSql("SELECT * from annotation")
+#     except:
+#         sys.stderr.write("Run Java AnnotationMatcher first")
+#         sys.exit()
 
     # STEP 4: create monolingual table
     query = "CREATE TABLE monolingual AS SELECT annotation_identifier, url, "
@@ -233,8 +234,8 @@ if __name__ == '__main__':
     query += "from annotation "
     query += "WHERE type='Verschleierung' and lang_plagiat=lang_source"
 
-    cur = executeSql(query)
-    CONN.commit()
+    cur = executeSql(conn, query)
+    conn.commit()
     cur.close()
 
     # DATA CLEANING
@@ -245,9 +246,9 @@ if __name__ == '__main__':
     word_ratio_max = 1.5
     bow_diff_min = 6
 
-    createMonolingualLangTable("monolingualEN", "en", word_ratio_min, word_ratio_max, bow_diff_min)
-    createMonolingualLangTable("monolingualDE", "de", word_ratio_min, word_ratio_max, bow_diff_min)
-    createMonolingualLangTable("monolingualES", "es", word_ratio_min, word_ratio_max, bow_diff_min)
+    createMonolingualLangTable(conn, "monolingualEN", "en", word_ratio_min, word_ratio_max, bow_diff_min)
+    createMonolingualLangTable(conn, "monolingualDE", "de", word_ratio_min, word_ratio_max, bow_diff_min)
+    createMonolingualLangTable(conn, "monolingualES", "es", word_ratio_min, word_ratio_max, bow_diff_min)
 
     # STEP 6: WRITE TRAIN and TEST FILES for each language to csv files
     now = datetime.datetime.now()
@@ -257,4 +258,4 @@ if __name__ == '__main__':
     write_csv_files("de", today, keys)
     write_csv_files("es", today, keys)
 
-    CONN.close()
+    conn.close()
