@@ -88,7 +88,10 @@ def createMonolingualLangTable(conn, table, lang, word_ratio_min, word_ratio_max
 
 def detectLang(conn):
     # language detection
-    cur = conn.cursor(MySQLdb.cursors.DictCursor)
+
+    #conn = MySQLdb.connect(host='127.0.0.1', user='root', passwd="", db='vroniplag', charset='utf8')
+    cur = CONN.cursor(MySQLdb.cursors.DictCursor)
+
     cur.execute("SELECT * FROM fragment ORDER BY fragment_identifier")
 
     for idx, r in enumerate(cur):
