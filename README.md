@@ -4,7 +4,7 @@ From this site you can download the Vroniplag corpus. We performed the following
 final dataset ([Click here to download the data directly](add)): 
 
 
-### STEP 1 - CRAWL THE DATA
+### STEP 1 - Crawl the data
 Run VroniplagCrawler to get initial fragment table
 ```
 --spring.profiles.active=vroniplag
@@ -23,14 +23,14 @@ conn = MySQLdb.connect(host='127.0.0.1', user='', passwd="", db='vroniplag', cha
 detectLang(conn)
 ```
 	
-### STEP 3 GET POSITIVE PP-PAIRS: 
+### STEP 3 Get positive pp-pairs: 
 Run *Application.java* with the AnnotationMatcher profile to get the *annotation* table:
 ```
 --spring.profiles.active=annotation-matcher
 ```
 
 
-### STEP 4 ADD NEGATIVE PP-PAIRS, DATA CLEANING:
+### STEP 4 Add negative pp-pairs, data cleaning:
 Run the Python script *cleaner.py*
 
 
