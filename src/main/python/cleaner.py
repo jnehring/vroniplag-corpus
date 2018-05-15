@@ -1,5 +1,6 @@
 # *-* coding: utf-8 *-*
 from __future__ import unicode_literals
+import argparse
 import datetime
 from langdetect import detect
 import MySQLdb
@@ -12,7 +13,7 @@ import sys
 def addNegatives(conn, tablename, fakeSrcDict):
     err_count = 0
     nb_negatives = 0
-    cur = executeSql("SELECT * from " + tablename + " WHERE isParaphrase=1;")
+    cur = executeSql(conn, "SELECT * from " + tablename + " WHERE isParaphrase=1;")
     for row in cur:
         annotation_id = row['annotation_identifier']
         fake_src = fakeSrcDict[annotation_id]
@@ -73,16 +74,16 @@ def addValToQuery(vals, query):
 
 def createMonolingualLangTable(conn, table, lang, word_ratio_min, word_ratio_max, bow_diff_min):
     query = getQueryMonolingualLangTable(table, lang, wr_min=word_ratio_min, wr_max=word_ratio_max, bd_min=bow_diff_min)
-    cur = executeSql(query)
+    cur = executeSql(conn, query)
     conn.commit()
     cur.close()
 
     query = "ALTER TABLE " + table + " ADD COLUMN isParaphrase TINYINT(1) DEFAULT 1"
-    cur = executeSql(query)
+    cur = executeSql(conn, query)
     conn.commit()
     cur.close()
 
-    ids_to_fake_sources = getFakeSources(lang)
+    ids_to_fake_sources = getFakeSources(conn, lang)
     addNegatives(conn, table, ids_to_fake_sources)
 
 
@@ -126,9 +127,9 @@ def executeSql(conn, query):
     return cur
 
 
-def getDataFromMonolingualLangTable(lang, keys, isParaphrase, excludeInnerIdenticals=True):
+def getDataFromMonolingualLangTable(conn, lang, keys, isParaphrase, excludeInnerIdenticals=True):
     query = "SELECT * from monolingual" + lang.upper() + " WHERE isParaphrase=" + str(isParaphrase) + ";"
-    cur = executeSql(query)
+    cur = executeSql(conn, query)
     rows = []
     counter = 0
     for row in cur:
@@ -154,11 +155,11 @@ def getDataFromMonolingualLangTable(lang, keys, isParaphrase, excludeInnerIdenti
     return rows
 
 
-def getFakeSources(lang):
+def getFakeSources(conn, lang):
     """Get mapping from annotation_identifier to fake source sent
     """
     query = "SELECT * from monolingual WHERE lang_plagiat='"+lang+"' and lang_source='"+lang+"';"
-    cur_annotation = executeSql(query)
+    cur_annotation = executeSql(conn, query)
     ids_to_fake_sources = {}
     for row in cur_annotation:
         key = row['annotation_identifier']
@@ -187,10 +188,10 @@ def splitData(percent_test, data):
     return train_data, test_data
 
 
-def write_csv_files(lang, suffix, keys):
-    data_isPP = getDataFromMonolingualLangTable(lang, keys, 1)
+def write_csv_files(conn, lang, suffix, keys):
+    data_isPP = getDataFromMonolingualLangTable(conn, lang, keys, 1)
     print("nb paraphrases: " + str(len(data_isPP)))
-    data_noPP = getDataFromMonolingualLangTable(lang, keys, 0)
+    data_noPP = getDataFromMonolingualLangTable(conn, lang, keys, 0)
     print("nb fake-paraphrases: " + str(len(data_noPP)))
 
     train_data_isPP, test_data_isPP = splitData(0.2, data_isPP)
@@ -207,17 +208,22 @@ def write_csv_files(lang, suffix, keys):
     test_data.to_csv(lang + suffix + '_test.csv', encoding='utf-8')
 
     print("train file for lang {} written to {}.".format(lang, train_file))
-    print("test file for lang {} written to {}.".format(lang, test_file))
+    print("test file for lang {} written to {}\n".format(lang, test_file))
 
 
 if __name__ == '__main__':
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--pw', help='password for vroniplag database', type=str, required=True)
+    parser.add_argument('--user', help='user for vroniplag database', default='root', type=str, required=False)
+
+    args = parser.parse_args()
     # CRAWL THE DATA
     # STEP 0: Run VroniplagCrawler to get initial fragment table
     # STEP 1: Run AnnotationDownloader to get the annotations which are added after javascript was run on website
     # (for future: integrate STEP 0+1)
 
     # STEP 2: Language Detection (fills lang_source + lang_plagiat columns of fragment table)
-    conn = MySQLdb.connect(host='127.0.0.1', user='root', passwd="", db='vroniplag', charset='utf8')
+    conn = MySQLdb.connect(host='127.0.0.1', user=args.user, passwd=args.pw, db='vroniplag', charset='utf8')
     #detectLang(conn)
 
     # STEP 3: Run Java AnnotationMatcher to get annotation table
@@ -254,8 +260,8 @@ if __name__ == '__main__':
     now = datetime.datetime.now()
     today = str(now.year) + "-" + str(now.month) + "-" + str(now.day)
     keys = ['plagiat_sent', 'source_sent', 'isParaphrase', 'url']
-    write_csv_files("en", today, keys)
-    write_csv_files("de", today, keys)
-    write_csv_files("es", today, keys)
+    write_csv_files(conn, "en", today, keys)
+    write_csv_files(conn, "de", today, keys)
+    write_csv_files(conn, "es", today, keys)
 
     conn.close()
