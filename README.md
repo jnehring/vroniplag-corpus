@@ -23,14 +23,14 @@ conn = MySQLdb.connect(host='127.0.0.1', user='', passwd="", db='vroniplag', cha
 detectLang(conn)
 ```
 	
-### STEP 3: 
+### STEP 3 GET POSITIVE PP-PAIRS: 
 Run *Application.java* with the AnnotationMatcher profile to get the *annotation* table:
 ```
 --spring.profiles.active=annotation-matcher
 ```
 
 
-### STEP 4:
+### STEP 4 ADD NEGATIVE PP-PAIRS, DATA CLEANING:
 Run the Python script *cleaner.py*
 
 
