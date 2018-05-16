@@ -204,17 +204,23 @@ def write_csv_files(conn, lang, suffix, keys):
     print("test shape: " + str(test_data.shape))
     train_file = lang + suffix + '_train.csv'
     test_file = lang + suffix + '_test.csv'
-    train_data.to_csv(lang + suffix + '_train.csv', encoding='utf-8')
-    test_data.to_csv(lang + suffix + '_test.csv', encoding='utf-8')
+    train_data.to_csv(train_file, encoding='utf-8')
+    test_data.to_csv(test_file, encoding='utf-8')
+
+    data = pd.concat([train_data, test_data])
+    data_file = lang+suffix+'.csv'
+    data.to_csv(data_file, encoding='utf-8')
 
     print("train file for lang {} written to {}.".format(lang, train_file))
     print("test file for lang {} written to {}\n".format(lang, test_file))
+    print("data file for lang {} written to {}\n".format(lang, data_file))
 
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--pw', help='password for vroniplag database', type=str, required=True)
-    parser.add_argument('--user', help='user for vroniplag database', default='root', type=str, required=False)
+    parser.add_argument('--user', help='user for vroniplag database (default:root)', default='root',
+                        type=str, required=False)
 
     args = parser.parse_args()
     # CRAWL THE DATA
